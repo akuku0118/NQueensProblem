@@ -1,0 +1,356 @@
+
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Feb 11 22:40:21 2020
+@author: Angela Ku
+California Baptist University
+In-Class Exercise #7 & Assignment #3
+02.11-16.2020
+CSC412
+"""
+
+global numOfQueens;
+global population; 
+import random;
+import math; 
+from collections import defaultdict;
+
+def printBoard(printThis):
+    
+#Here is my print function         
+    for i in range(len(printThis)):
+        for j in range(len(printThis[i])):
+            if(printThis[i][j] == 0):
+                printThis[i][j] = "\u2B1C" #basic white square 'omg her edges so fine'
+                
+            if(printThis[i][j] == 1):
+                printThis[i][j] = "\u2B1B" #black square 
+    
+            if(printThis[i][j] == 'Q'):
+                printThis[i][j] = "\U0001F7E4" #queens
+            
+            print(printThis[i][j], end = "")
+        print()
+    
+def makeBoard(queenTuple):
+    
+    board = [[0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 1, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 1, 0, 0, 0]];
+        
+    for x in range(len(queenTuple)):
+        i = queenTuple[x][0];
+        j = queenTuple[x][1]; 
+        board[i][j] = 'Q'; 
+        
+    return board; 
+    
+def generateFirstPop(n):
+#Here we ought to generate the random placement of n queens on the board
+#We can generate two random numbers and use them as the coordinates of each queen
+    queens = [];
+
+    board = [[0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 1, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 1, 0, 0, 0]];
+                         
+    while not(len(queens) == numOfQueens):
+        x = random.randrange(0, 8, 1);
+        y = random.randrange(0, 8, 1);
+        #place one queen on board
+        
+        if not (board[x][y] == 1 or board[x][y] == 'Q'):
+            queens.append((x,y));
+            board[x][y] = 'Q'; 
+        
+    return queens, board; 
+
+def generateNextPop(father, mother):   
+    newQueens = []; 
+    
+    newBoard = [[0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 1, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 1, 0, 0, 0]];
+                
+    orderedFather = [x for x in father]; 
+    orderedFather.sort(key = lambda x:x[1]);  
+    
+    orderedMother = [x for x in mother]; 
+    orderedMother.sort(key = lambda x:x[1]);  
+    
+    size = random.randrange(0, 5); 
+    size2 = random.randrange(0, 5); 
+    
+    while (size == size2):
+        size2 = random.randrange(0,5); 
+    
+    if(size > size2):
+        upper = size+1;
+        lower = size2+1;
+    else: 
+        upper = size2+1;
+        lower = size+1; 
+        
+    for x in range(0, lower):
+        i = (int)(orderedFather[x][0]);
+        j = (int)(orderedFather[x][1]); 
+        if(random.randrange(10000) == 0): #random mutation probabilty 
+            print("Crazy mutation happened!"); 
+            i = random.randrange(0, 8, 1);
+            j = random.randrange(0, 8, 1);
+        if(newBoard[i][j] == 'Q'):
+            i = (int)(orderedMother[x][0]);
+            j = (int)(orderedMother[x][1]); 
+        newQueens.append((i, j)); 
+        newBoard[i][j] = 'Q'; 
+
+    for x in range(lower, upper):
+        i = (int)(orderedMother[x][0]);
+        j = (int)(orderedMother[x][1]); 
+        if(random.randrange(10000) == 0): #random mutation probabilty 
+            print("Crazy mutation happened!"); 
+            i = random.randrange(0, 8, 1);
+            j = random.randrange(0, 8, 1);
+        if(newBoard[i][j] == 'Q'):
+            i = (int)(orderedFather[x][0]);
+            j = (int)(orderedFather[x][1]); 
+        newQueens.append((i, j)); 
+        newBoard[i][j] = 'Q'; 
+        
+    for x in range(upper, numOfQueens):
+        i = (int)(orderedFather[x][0]);
+        j = (int)(orderedFather[x][1]); 
+        if(random.randrange(10000) == 0): #random mutation probabilty 
+            print("Crazy mutation happened!"); 
+            i = random.randrange(0, 8, 1);
+            j = random.randrange(0, 8, 1);
+        if(newBoard[i][j] == 'Q'):
+            i = (int)(orderedMother[x][0]);
+            j = (int)(orderedMother[x][1]); 
+        newQueens.append((i, j)); 
+        newBoard[i][j] = 'Q'; 
+
+    return newQueens, newBoard; 
+
+def fitnessFunction(calcQueens, myBoard):
+#We now want to get the fitness "score" for each board.
+#We will calculate this by the sum of every queen's clashability score
+    points = 0; #sum = searchHor(x) + searchVer(x) + searchDia(x);
+
+    for x in calcQueens:
+        
+        #SEARCH VERTICAL AND HORIZONTAL
+        i = x[0]; 
+        j = x[1]; 
+        
+        obstruction = [0,0];
+        for u in range(i-1, -1, -1):
+            if(myBoard[u][j] == 1):
+                obstruction = [u, j];
+            if(myBoard[u][j] == 'Q'):
+                points+=1;
+                if(obstruction[0] != 0 and obstruction[0] > u):
+                    #print("We found a U obstruction!"); 
+                    points-=1; 
+                        
+        obstruction = [0,0];
+        for d in range(i+1, 8):
+            if(myBoard[d][j] == 1):
+                obstruction = [d, j];
+            if(myBoard[d][j] == 'Q'):
+                points+=1; 
+                if(obstruction[0] != 0 and obstruction[0] < d):
+                    #print("We found a D obstruction!"); 
+                    points-=1; 
+
+        obstruction = [0,0];
+        for l in range(j-1, -1, -1):
+            if(myBoard[i][l] == 1):
+                obstruction = [i, l];
+            if(myBoard[i][l] == 'Q'):
+                points+=1; 
+                if(obstruction[1] != 0 and obstruction[1] > l):
+                    #print("We found a L obstruction!"); 
+                    points-=1;
+         
+        obstruction = [0,0];
+        for r in range(j+1, 8):
+            if(myBoard[i][r] == 1):
+                obstruction = [i, r];
+            if(myBoard[i][r] == 'Q'):
+                points+=1; 
+                if(obstruction[1] != 0 and obstruction[1] < r):
+                    #print("We found a R obstruction!"); 
+                    points-=1;
+                
+        #SEARCH DIAGONAL
+        obstruction = [0,0];
+        for U, L in zip(range(i-1, -1, -1), range(j-1, -1, -1)):
+            if(myBoard[U][L] == 1):
+                obstruction = [U, L]
+            if(myBoard[U][L] == 'Q'):
+                points+=1; 
+                #print("Up Left Queen Found"); 
+                if(obstruction != [0,0] and obstruction > [U, L]):
+                    #print("We found a UL obstruction!");
+                    points-=1;
+          
+        obstruction = [0,0];
+        for U, R in zip(range(i-1, -1, -1), range(j+1, 8)):
+            if(myBoard[U][R] == 1):
+                obstruction = [U, R]; 
+            if(myBoard[U][R] == 'Q'):
+                points+=1; 
+                #print("Up Right Queen Found");
+                if(obstruction != [0,0] and obstruction[0] > U and obstruction[1] < R):
+                    #print("We found a UR obstruction!");
+                    points-=1;
+                
+        obstruction = [0,0];        
+        for D, L in zip(range(i+1, 8), range(j-1, -1, -1)):
+            if(myBoard[D][L] == 1):
+                obstruction = [D, L]; 
+            if(myBoard[D][L] == 'Q'):
+                points+=1; 
+                #print("Down Left Queen Found"); 
+                if(obstruction != [0,0] and obstruction[0] < D and obstruction[1] > L):
+                    #print("We found a DL obstruction!");
+                    points-=1;
+                
+        obstruction = [0,0];        
+        for D, R in zip(range(i+1, 8), range(j+1, 8)):
+            if(myBoard[D][R] == 1):
+                obstruction = [D, R]; 
+            if(myBoard[D][R] == 'Q'):
+                points+=1; 
+                #print("Down Right Queen Found"); 
+                if(obstruction != [0,0] and obstruction < [D, R]):
+                    #print("We found a DR obstruction!");
+                    points-=1;
+                    
+    #all points together make the sum of ALL the queens' clashability 
+    return points; 
+
+def algorithm(dictionary, size):
+        
+    sorted_list = [x for x in dictionary.items()]; 
+    sorted_list.sort(key = lambda x:x[1]);  
+
+    sortedDict = dict(sorted_list);
+
+    nextDict = defaultdict();
+    size = size//2; 
+
+    #more fit Individuals are more likely to breed
+fitProb = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 4, 4, 4, 6, 8, 10, 12, 14, 16, 18, 20]; #don't even breed those over 20
+#fit individuals are extremely likely to breed
+    #fitProb = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2];#
+
+    for x in range(size):
+        
+        percentileF = 0; 
+        percentileM = 0; 
+        probNumF = random.choice(fitProb);    
+        probNumM = random.choice(fitProb);
+        
+        for y in range(-1, probNumF):
+            percentileF+=5;  
+        for y in range(-1, probNumM):
+            percentileM+=5;            
+            
+        if(percentileF == 105):
+            percentileF = 99;
+        if(percentileM == 105):
+            percentileM = 99; 
+            
+        matingRangeF = math.ceil((percentileF*0.01)*(len(dictionary)));
+        matingRangeM = math.ceil((percentileM*0.01)*(len(dictionary)));
+    
+        chooseF = random.randrange(matingRangeF);
+        chooseM = random.randrange(matingRangeM);       
+            
+        father = list(sortedDict.keys())[chooseF];
+        mother = list(sortedDict.keys())[chooseM];
+
+        nextQueens, nextBoard = generateNextPop(father, mother); 
+        newPoints = fitnessFunction(nextQueens, nextBoard); 
+        nextQueenTup = tuple(nextQueens); 
+        nextDict[nextQueenTup] = newPoints; 
+        #print(len(nextDict)); 
+    
+    if not (len(sortedDict) == 1):
+        print("Current Population Size:", size);
+        print("Current Clashability Scores: "); 
+        print(sortedDict.values());
+        print(); 
+        algorithm(nextDict, size); 
+
+    if(len(sortedDict) == 1):
+        #print("Final Population Size:", size); 
+        print("Number of Queens:", numOfQueens); 
+        print("Starting Population Size Was...", population); 
+        print("Final Queen Coordinates: "); 
+        print(list(sortedDict.keys()));
+        print("Final Clashability Score: "); 
+        print(list(sortedDict.values())); 
+        printBoard(makeBoard(list(sortedDict.keys())[0]));
+        print(); 
+                
+    return "Finished."; 
+
+
+
+"""My "main" function is here"""
+#Begin with 100 individuals in the population; switch to 1000
+#place clashability points into a dictionary > list to order the individuals
+numOfQueens = 11;
+population = 100000; 
+#STARTING POINT - FIRST ITERATION.
+clashDict = defaultdict(); 
+
+for x in range(population):
+    queens, myBoard = generateFirstPop(numOfQueens);
+    points = fitnessFunction(queens, myBoard);     
+    queenTuple = tuple(queens); 
+    clashDict[queenTuple] = points; 
+   
+
+print("STARTING Population Size:", population); 
+sorted_list = [x for x in clashDict.items()]; 
+sorted_list.sort(key = lambda x:x[1]);  
+sortedDict = dict(sorted_list);
+print("STARTING Clashability Scores: ");
+print(sortedDict.values()); 
+print(); 
+
+print(algorithm(clashDict, population));      
+
+   
+
+"""My Notes
+    
+this is a white queen! print (u'\u2655')
+this is a black king! print (u'\u265B')
+this is a large black square print (u'\u2B1B')
+this is a large white square print (u'\u2B1C')
+this is a grey circle, representing the queen "\U0001F7E4"
+#print("Clashability of this Board:"); 
+#print(points); 
+#printBoard(myBoard); 
+
+"""
